@@ -1,0 +1,3 @@
+co.ferrells.CompositeTrustManager.CompositeTrustManagerAutoConfiguration
+co.ferrells.CompositeTrustManager.CompositeTrustManagerLdapAutoConfiguration
+co.ferrells.CompositeTrustManager.CompositeTrustManagerHttpClient5AutoConfiguration
