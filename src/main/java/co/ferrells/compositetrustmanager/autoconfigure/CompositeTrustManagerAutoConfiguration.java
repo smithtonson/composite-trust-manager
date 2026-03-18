@@ -1,4 +1,8 @@
-package co.ferrells.CompositeTrustManager;
+package co.ferrells.compositetrustmanager.autoconfigure;
+
+import co.ferrells.compositetrustmanager.BundleAwareHostnameVerifier;
+import co.ferrells.compositetrustmanager.CompositeTrustManager;
+import co.ferrells.compositetrustmanager.CompositeTrustManagerSslBundle;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -58,10 +62,10 @@ import org.springframework.util.Assert;
 @ConditionalOnProperty(prefix = "composite-trust-manager", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class CompositeTrustManagerAutoConfiguration {
 
-    static final String SSL_BUNDLE_BEAN_NAME = "compositeTrustManagerSslBundle";
-    static final String SSL_CONTEXT_BEAN_NAME = "compositeTrustManagerSslContext";
-    static final String SSL_SOCKET_FACTORY_BEAN_NAME = "compositeTrustManagerSslSocketFactory";
-    static final String HOSTNAME_VERIFIER_BEAN_NAME = "compositeTrustManagerHostnameVerifier";
+    public static final String SSL_BUNDLE_BEAN_NAME = "compositeTrustManagerSslBundle";
+    public static final String SSL_CONTEXT_BEAN_NAME = "compositeTrustManagerSslContext";
+    public static final String SSL_SOCKET_FACTORY_BEAN_NAME = "compositeTrustManagerSslSocketFactory";
+    public static final String HOSTNAME_VERIFIER_BEAN_NAME = "compositeTrustManagerHostnameVerifier";
 
     @Bean(name = SSL_BUNDLE_BEAN_NAME)
     @ConditionalOnBean(SslBundles.class)

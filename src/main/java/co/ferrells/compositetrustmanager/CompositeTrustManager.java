@@ -1,4 +1,4 @@
-package co.ferrells.CompositeTrustManager;
+package co.ferrells.compositetrustmanager;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,7 +54,7 @@ public class CompositeTrustManager implements X509TrustManager {
         return new CompositeTrustManager(trustManagers);
     }
 
-    protected static List<X509TrustManager> getDefaultTrustManagers() {
+    public static List<X509TrustManager> getDefaultTrustManagers() {
         try {
             TrustManagerFactory trustFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustFactory.init(loadDefaultTrustStore());
@@ -66,7 +66,7 @@ public class CompositeTrustManager implements X509TrustManager {
         }
     }
 
-    protected static List<X509TrustManager> extractX509TrustManagers(TrustManager[] trustManagers) {
+    public static List<X509TrustManager> extractX509TrustManagers(TrustManager[] trustManagers) {
         Assert.notNull(trustManagers, "TrustManager array must not be null");
 
         List<X509TrustManager> x509TrustManagers = Arrays.stream(trustManagers)
@@ -181,7 +181,7 @@ public class CompositeTrustManager implements X509TrustManager {
         }
     }
 
-    protected static Path resolveTrustStoreLocation(String configured) {
+    public static Path resolveTrustStoreLocation(String configured) {
         if (configured != null && !configured.isBlank()) {
             Path candidate = Paths.get(configured);
             File file = candidate.toFile();
@@ -206,12 +206,12 @@ public class CompositeTrustManager implements X509TrustManager {
         throw new IllegalStateException("Unable to locate the JVM default trust store");
     }
 
-    protected static char[] resolveTrustStorePassword() {
+    public static char[] resolveTrustStorePassword() {
         String configured = System.getProperty("javax.net.ssl.trustStorePassword");
         return (configured != null && !configured.isBlank()) ? configured.toCharArray() : "changeit".toCharArray(); // "changeit" is JVMs default TrustStore password
     }
 
-    protected static String resolveTrustStoreType() {
+    public static String resolveTrustStoreType() {
         String configured = System.getProperty("javax.net.ssl.trustStoreType");
         return (configured != null && !configured.isBlank()) ? configured : KeyStore.getDefaultType();
     }

@@ -1,4 +1,4 @@
-package co.ferrells.CompositeTrustManager;
+package co.ferrells.compositetrustmanager;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;

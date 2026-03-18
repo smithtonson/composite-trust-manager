@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>co.ferrells</groupId>
-	<artifactId>CompositeTrustManager</artifactId>
+	<artifactId>compositetrustmanager-spring-boot-starter</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>CompositeTrustManager</name>
+	<name>Composite Trust Manager Spring Boot Starter</name>
 	<description>Spring Boot autoconfiguration that unions an SSL bundle with the system trust store</description>
 	<url/>
 	<licenses>

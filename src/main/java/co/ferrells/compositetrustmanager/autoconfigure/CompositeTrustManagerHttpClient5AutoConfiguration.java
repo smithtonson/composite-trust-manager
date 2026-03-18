@@ -1,5 +1,7 @@
-package co.ferrells.CompositeTrustManager;
+package co.ferrells.compositetrustmanager.autoconfigure;
 
+import co.ferrells.compositetrustmanager.BundleAwareHostnameVerifier;
+import co.ferrells.compositetrustmanager.CompositeTrustManager;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
@@ -42,7 +44,7 @@ import org.springframework.context.annotation.Bean;
 @ConditionalOnProperty(prefix = "composite-trust-manager", name = "configure-http-clients", havingValue = "true", matchIfMissing = true)
 public class CompositeTrustManagerHttpClient5AutoConfiguration {
 
-    static final String TLS_STRATEGY_BEAN_NAME = "compositeTrustManagerTlsStrategy";
+    public static final String TLS_STRATEGY_BEAN_NAME = "compositeTrustManagerTlsStrategy";
 
     @Bean(name = TLS_STRATEGY_BEAN_NAME)
     @ConditionalOnBean(name = CompositeTrustManagerAutoConfiguration.SSL_CONTEXT_BEAN_NAME)

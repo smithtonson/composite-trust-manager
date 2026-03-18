@@ -1,5 +1,10 @@
 package co.ferrells.CompositeTrustManager;
 
+import co.ferrells.compositetrustmanager.BundleAwareHostnameVerifier;
+import co.ferrells.compositetrustmanager.autoconfigure.CompositeTrustManagerAutoConfiguration;
+import co.ferrells.compositetrustmanager.autoconfigure.CompositeTrustManagerHttpClient5AutoConfiguration;
+import co.ferrells.compositetrustmanager.autoconfigure.CompositeTrustManagerLdapAutoConfiguration;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;

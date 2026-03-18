@@ -1,5 +1,7 @@
 package co.ferrells.CompositeTrustManager;
 
+import co.ferrells.compositetrustmanager.CompositeTrustManager;
+
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;

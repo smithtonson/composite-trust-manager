@@ -1,4 +1,4 @@
-package co.ferrells.CompositeTrustManager;
+package co.ferrells.compositetrustmanager;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -21,12 +21,12 @@ import org.springframework.util.Assert;
  * Key material (private keys and the key store) from the source bundle is preserved without
  * modification; only the trust manager and trust store are replaced.
  * <p>
- * This class is package-private and is not intended to be used directly outside of
+ * This class is not intended to be used directly outside of
  * {@link CompositeTrustManagerAutoConfiguration}.
  */
-final class CompositeTrustManagerSslBundle {
+public final class CompositeTrustManagerSslBundle {
 
-    private CompositeTrustManagerSslBundle() {}
+    public CompositeTrustManagerSslBundle() {}
 
     /**
      * Creates a composite {@link SslBundle} derived from {@code sourceBundle}.
@@ -44,7 +44,7 @@ final class CompositeTrustManagerSslBundle {
      *
      * @return a new {@link SslBundle} backed by the composite trust manager
      */
-    static SslBundle create(SslBundle sourceBundle) {
+    public static SslBundle create(SslBundle sourceBundle) {
         Assert.notNull(sourceBundle, "Source SslBundle must not be null");
         CompositeTrustManager compositeTrustManager = CompositeTrustManager.fromSystemAndBundle(sourceBundle);
         SslStoreBundle stores = mergeStores(sourceBundle);
@@ -65,7 +65,7 @@ final class CompositeTrustManagerSslBundle {
      *
      * @return a new {@link SslStoreBundle} with the merged trust store
      */
-    private static SslStoreBundle mergeStores(SslBundle sourceBundle) {
+    public static SslStoreBundle mergeStores(SslBundle sourceBundle) {
         KeyStore mergedTrustStore = CompositeTrustManager.loadDefaultTrustStore();
         KeyStore sourceTrustStore = sourceBundle.getStores().getTrustStore();
         if (sourceTrustStore != null) {
@@ -90,7 +90,7 @@ final class CompositeTrustManagerSslBundle {
      *
      * @throws IllegalStateException if the copy fails due to a {@link KeyStoreException}
      */
-    private static void copyCertificates(KeyStore source, KeyStore target) {
+    public static void copyCertificates(KeyStore source, KeyStore target) {
         try {
             Enumeration<String> aliases = source.aliases();
             while (aliases.hasMoreElements()) {
@@ -125,7 +125,7 @@ final class CompositeTrustManagerSslBundle {
      *
      * @throws KeyStoreException if {@code keyStore} has not been initialised
      */
-    private static String uniqueAlias(KeyStore keyStore, String alias) throws KeyStoreException {
+    public static String uniqueAlias(KeyStore keyStore, String alias) throws KeyStoreException {
         if (!keyStore.containsAlias(alias)) {
             return alias;
         }
@@ -151,7 +151,7 @@ final class CompositeTrustManagerSslBundle {
      *
      * @return a {@link SslManagerBundle} backed by the composite trust manager
      */
-    private static SslManagerBundle createManagers(SslBundle sourceBundle, X509TrustManager compositeTrustManager) {
+    public static SslManagerBundle createManagers(SslBundle sourceBundle, X509TrustManager compositeTrustManager) {
         KeyManagerFactory keyManagerFactory = sourceBundle.getManagers().getKeyManagerFactory();
         
         return new SslManagerBundle() {
