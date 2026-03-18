@@ -11,6 +11,7 @@ import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -56,6 +57,9 @@ class CompositeTrustManagerAutoConfigurationTests {
     private final javax.net.ssl.SSLSocketFactory originalDefaultSocketFactory = HttpsURLConnection
             .getDefaultSSLSocketFactory();
 
+    private final HostnameVerifier originalDefaultHostnameVerifier = HttpsURLConnection
+            .getDefaultHostnameVerifier();
+
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(
                     SslAutoConfiguration.class,
@@ -75,6 +79,7 @@ class CompositeTrustManagerAutoConfigurationTests {
     void restoreDefaultSslContext() {
         SSLContext.setDefault(this.originalDefaultContext);
         HttpsURLConnection.setDefaultSSLSocketFactory(this.originalDefaultSocketFactory);
+        HttpsURLConnection.setDefaultHostnameVerifier(this.originalDefaultHostnameVerifier);
     }
 
     @Test
@@ -184,6 +189,59 @@ class CompositeTrustManagerAutoConfigurationTests {
                     assertThat(context).hasNotFailed();
                     assertThat(context).doesNotHaveBean(
                             CompositeTrustManagerHttpClient5AutoConfiguration.TLS_STRATEGY_BEAN_NAME);
+                });
+    }
+
+    @Test
+    void doesNotInstallBundleAwareHostnameVerifierByDefault() {
+        this.contextRunner.run((context) -> {
+            assertThat(context).hasNotFailed();
+            assertThat(context).doesNotHaveBean(
+                    CompositeTrustManagerAutoConfiguration.HOSTNAME_VERIFIER_BEAN_NAME);
+            assertThat(HttpsURLConnection.getDefaultHostnameVerifier())
+                    .isNotInstanceOf(BundleAwareHostnameVerifier.class);
+        });
+    }
+
+    @Test
+    void exposesBundleAwareHostnameVerifierWhenIgnoreHostnameMismatchEnabled() {
+        this.contextRunner
+                .withPropertyValues("composite-trust-manager.ignore-hostname-mismatch=true")
+                .run((context) -> {
+                    assertThat(context).hasNotFailed();
+                    assertThat(context).hasBean(
+                            CompositeTrustManagerAutoConfiguration.HOSTNAME_VERIFIER_BEAN_NAME);
+                    HostnameVerifier verifier = context.getBean(
+                            CompositeTrustManagerAutoConfiguration.HOSTNAME_VERIFIER_BEAN_NAME,
+                            HostnameVerifier.class);
+                    assertThat(verifier).isInstanceOf(BundleAwareHostnameVerifier.class);
+                });
+    }
+
+    @Test
+    void installsBundleAwareHostnameVerifierAsGlobalDefaultWhenIgnoreHostnameMismatchEnabled() {
+        this.contextRunner
+                .withPropertyValues("composite-trust-manager.ignore-hostname-mismatch=true")
+                .run((context) -> {
+                    assertThat(context).hasNotFailed();
+                    assertThat(HttpsURLConnection.getDefaultHostnameVerifier())
+                            .isInstanceOf(BundleAwareHostnameVerifier.class);
+                });
+    }
+
+    @Test
+    void httpclient5TlsStrategyUsesBundleAwareVerifierWhenIgnoreHostnameMismatchEnabled() {
+        this.contextRunner
+                .withPropertyValues("composite-trust-manager.ignore-hostname-mismatch=true")
+                .run((context) -> {
+                    assertThat(context).hasNotFailed();
+                    TlsSocketStrategy tlsStrategy = context.getBean(
+                            CompositeTrustManagerHttpClient5AutoConfiguration.TLS_STRATEGY_BEAN_NAME,
+                            TlsSocketStrategy.class);
+                    assertThat(tlsStrategy).isNotNull();
+                    // Verify the strategy has the bundle-aware verifier via field inspection
+                    HostnameVerifier verifier = extractField(tlsStrategy, HostnameVerifier.class);
+                    assertThat(verifier).isInstanceOf(BundleAwareHostnameVerifier.class);
                 });
     }
 

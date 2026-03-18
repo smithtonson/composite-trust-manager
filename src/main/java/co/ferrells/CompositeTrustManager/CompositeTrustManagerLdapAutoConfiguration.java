@@ -15,14 +15,14 @@ import org.springframework.ldap.core.support.AbstractTlsDirContextAuthentication
 /**
  * Auto-configuration that wires the composite SSL socket factory into any Spring LDAP
  * STARTTLS authentication strategies present in the application context.
- *
- * <p>This auto-configuration is separate from {@link CompositeTrustManagerAutoConfiguration}
+ * <p>
+ * This auto-configuration is separate from {@link CompositeTrustManagerAutoConfiguration}
  * so that it runs after that class's bean definitions are fully registered. Member
  * configuration classes are processed before their enclosing class's {@code @Bean} methods,
  * which means {@code @ConditionalOnBean} checks for beans defined in the outer class would
  * always fail if evaluated from an inner member class.
- *
- * <p>For {@code ldaps://} (implicit SSL), the JVM default {@code SSLContext} installed by
+ * <p>
+ * For {@code ldaps://} (implicit SSL), the JVM default {@code SSLContext} installed by
  * {@code composite-trust-manager.install-default-ssl-context} (default: true) already
  * provides full coverage. This class closes the remaining gap for explicit STARTTLS
  * connections, particularly when the global default SSL context override is disabled.
@@ -40,7 +40,7 @@ public class CompositeTrustManagerLdapAutoConfiguration {
     @ConditionalOnBean(name = CompositeTrustManagerAutoConfiguration.SSL_SOCKET_FACTORY_BEAN_NAME)
     SmartInitializingSingleton compositeTrustManagerLdapTlsConfigurer(
             @Qualifier(CompositeTrustManagerAutoConfiguration.SSL_SOCKET_FACTORY_BEAN_NAME) SSLSocketFactory sslSocketFactory,
-            ListableBeanFactory beanFactory)
+            ListableBeanFactory beanFactory) 
     {
         return () -> beanFactory.getBeansOfType(AbstractTlsDirContextAuthenticationStrategy.class)
                 .values()

@@ -42,5 +42,7 @@ final class CompositeTrustManagerFactory extends TrustManagerFactory {
         protected TrustManager[] engineGetTrustManagers() {
             return this.trustManagers.clone();
         }
+
     }
+
 }

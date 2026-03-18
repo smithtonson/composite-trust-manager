@@ -27,8 +27,18 @@ public class CompositeTrustManagerProperties {
     private boolean installDefaultSslContext = true;
 
     /**
+     * Whether to ignore mis-matched hostnames, <em>only affects certificates in Spring's {@code SslBundle}</em>.
+     * <p>
+     * Common with embedded devices and consumer products on a LAN.<br>
+     * i.e. routers, modems, NASes, etc...
+     */
+    private boolean ignoreHostnameMismatch = false;
+
+    /**
      * Whether to configure Spring LDAP TLS authentication strategies with the composite
-     * SSL socket factory. Covers STARTTLS connections independently of
+     * SSL socket factory.
+     * <p>
+     * Covers STARTTLS connections independently of
      * install-default-ssl-context. Has no effect when spring-ldap-core is not present.
      */
     private boolean configureLdap = true;
@@ -65,6 +75,14 @@ public class CompositeTrustManagerProperties {
         this.installDefaultSslContext = installDefaultSslContext;
     }
 
+    public boolean isIgnoreHostnameMismatch() {
+        return this.ignoreHostnameMismatch;
+    }
+
+    public void setIgnoreHostnameMismatch(boolean ignoreHostnameMismatch) {
+        this.ignoreHostnameMismatch = ignoreHostnameMismatch;
+    }
+
     public boolean isConfigureLdap() {
         return this.configureLdap;
     }
@@ -72,4 +90,5 @@ public class CompositeTrustManagerProperties {
     public void setConfigureLdap(boolean configureLdap) {
         this.configureLdap = configureLdap;
     }
+
 }

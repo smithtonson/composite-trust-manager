@@ -1,5 +1,6 @@
 package co.ferrells.CompositeTrustManager;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -22,30 +23,25 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
 /**
- * Spring Boot autoconfiguration for CompositeTrustManager.
+ * Spring Boot auto-configuration for CompositeTrustManager.
  * 
- * afterName/beforeName (string form) is used instead of after/before
- * (class references) for all optional auto-configuration classes. Using class 
- * references in @AutoConfiguration(after/before=...) forces Spring to classload
- * them during bean name generation — before any @ConditionalOnClass checks
- * run — which causes an IllegalArgumentException in projects that don't have 
- * those classes on the classpath.
- *
- * String-based afterName/beforeName tolerates missing classes gracefully.
  * Affected classes and the dependency that provides them:
  *   HttpClientAutoConfiguration              – spring-boot-autoconfigure 3.4+
  *   ClientHttpConnectorAutoConfiguration     – spring-boot-autoconfigure 3.4+
  *   RestTemplateAutoConfiguration            – spring-web
  *   RestClientAutoConfiguration              – spring-web
  *   WebClientAutoConfiguration               – spring-webflux
- *
- * SslAutoConfiguration is declared as a class reference (not string) because it
- * is in spring-boot-autoconfigure, which is a required dependency. It must 
- * appear in after= so that SslBundles is registered before
- * our @ConditionalOnBean(SslBundles.class) is evaluated.
- * 
- * @author ferrellj
  */
+// SslAutoConfiguration is declared as a class reference (not string) because it
+// is in spring-boot-autoconfigure, which is a required dependency. It must 
+// appear in after= so that SslBundles is registered before
+// our @ConditionalOnBean(SslBundles.class) is evaluated.
+// afterName/beforeName (string form) is used instead of after/before
+// (class references) for all optional auto-configuration classes. Using class 
+// references in @AutoConfiguration(after/before=...) forces Spring to classload
+// them during bean name generation and before any @ConditionalOnClass checks
+// run which causes an IllegalArgumentException in projects that don't have 
+// those classes on the classpath.
 @AutoConfiguration(
         after = SslAutoConfiguration.class,
         afterName = {
@@ -65,6 +61,7 @@ public class CompositeTrustManagerAutoConfiguration {
     static final String SSL_BUNDLE_BEAN_NAME = "compositeTrustManagerSslBundle";
     static final String SSL_CONTEXT_BEAN_NAME = "compositeTrustManagerSslContext";
     static final String SSL_SOCKET_FACTORY_BEAN_NAME = "compositeTrustManagerSslSocketFactory";
+    static final String HOSTNAME_VERIFIER_BEAN_NAME = "compositeTrustManagerHostnameVerifier";
 
     @Bean(name = SSL_BUNDLE_BEAN_NAME)
     @ConditionalOnBean(SslBundles.class)
@@ -77,7 +74,8 @@ public class CompositeTrustManagerAutoConfiguration {
 
     @Bean(name = SSL_CONTEXT_BEAN_NAME)
     @ConditionalOnBean(name = SSL_BUNDLE_BEAN_NAME)
-    SSLContext compositeTrustManagerSslContext(@Qualifier(SSL_BUNDLE_BEAN_NAME) SslBundle sslBundle) {
+    SSLContext compositeTrustManagerSslContext(@Qualifier(SSL_BUNDLE_BEAN_NAME) SslBundle sslBundle)
+    {
         return sslBundle.createSslContext();
     }
 
@@ -89,16 +87,32 @@ public class CompositeTrustManagerAutoConfiguration {
         return sslContext.getSocketFactory();
     }
 
+    @Bean(name = HOSTNAME_VERIFIER_BEAN_NAME)
+    @ConditionalOnBean(name = SSL_CONTEXT_BEAN_NAME)
+    @ConditionalOnProperty(prefix = "composite-trust-manager", name = "ignore-hostname-mismatch", havingValue = "true")
+    HostnameVerifier compositeTrustManagerHostnameVerifier()
+    {
+        return new BundleAwareHostnameVerifier(
+                CompositeTrustManager.getDefaultTrustManagers(),
+                HttpsURLConnection.getDefaultHostnameVerifier());
+    }
+
     @Bean
     @ConditionalOnBean(name = SSL_CONTEXT_BEAN_NAME)
     @ConditionalOnProperty(prefix = "composite-trust-manager", name = "install-default-ssl-context", havingValue = "true", matchIfMissing = true)
     InitializingBean compositeTrustManagerGlobalSslDefaults(
             @Qualifier(SSL_SOCKET_FACTORY_BEAN_NAME) SSLSocketFactory sslSocketFactory,
-            @Qualifier(SSL_CONTEXT_BEAN_NAME) SSLContext sslContext)
+            @Qualifier(SSL_CONTEXT_BEAN_NAME) SSLContext sslContext,
+            CompositeTrustManagerProperties properties)
     {
         return () -> {
             SSLContext.setDefault(sslContext);
             HttpsURLConnection.setDefaultSSLSocketFactory(sslSocketFactory);
+            if (properties.isIgnoreHostnameMismatch()) {
+                HttpsURLConnection.setDefaultHostnameVerifier(new BundleAwareHostnameVerifier(
+                        CompositeTrustManager.getDefaultTrustManagers(),
+                        HttpsURLConnection.getDefaultHostnameVerifier()));
+            }
         };
     }
 
