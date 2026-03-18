@@ -10,14 +10,14 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.TrustManagerFactorySpi;
 
-final class FixedTrustManagerFactory extends TrustManagerFactory {
+final class CompositeTrustManagerFactory extends TrustManagerFactory {
 
     private static final Provider PROVIDER = new Provider("CompositeTrustManagerProvider", 1.0,
             "Provides a fixed set of trust managers") {
         private static final long serialVersionUID = 1L;
     };
 
-    FixedTrustManagerFactory(TrustManager... trustManagers) {
+    CompositeTrustManagerFactory(TrustManager... trustManagers) {
         super(new FixedTrustManagerFactorySpi(trustManagers), PROVIDER, "fixed");
     }
 

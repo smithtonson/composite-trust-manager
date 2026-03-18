@@ -130,7 +130,7 @@ final class CompositeTrustManagerSslBundle {
 
     /**
      * Creates a {@link SslManagerBundle} that pairs the source bundle's key manager factory with
-     * a {@link FixedTrustManagerFactory} wrapping {@code compositeTrustManager}.
+     * a {@link CompositeTrustManagerFactory} wrapping {@code compositeTrustManager}.
      *
      * <p>The key manager factory is taken directly from {@code sourceBundle} so that client
      * certificate authentication continues to use the original key material. The trust side is
@@ -149,8 +149,8 @@ final class CompositeTrustManagerSslBundle {
             }
 
             @Override
-            public FixedTrustManagerFactory getTrustManagerFactory() {
-                return new FixedTrustManagerFactory(compositeTrustManager);
+            public CompositeTrustManagerFactory getTrustManagerFactory() {
+                return new CompositeTrustManagerFactory(compositeTrustManager);
             }
         };
     }
