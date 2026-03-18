@@ -31,11 +31,11 @@ import org.springframework.context.annotation.Bean;
  * {@code @ConditionalOnBean} on the {@code @Bean} method is evaluated after the parent
  * auto-configuration's beans are registered. Class-level {@code @ConditionalOnBean} across
  * auto-configuration boundaries is unreliable — see the inline comment on this class.
- */
-// @ConditionalOnBean is intentionally placed on the @Bean method rather than the class.
-// Class-level @ConditionalOnBean across auto-configuration boundaries is unreliable:
-// Spring evaluates it during configuration class scanning, before the peer auto-configuration's
-// bean definitions are guaranteed to be visible, even with @AutoConfiguration(after = ...) ordering.
+ */ 
+//@ConditionalOnBean is intentionally placed on the @Bean method rather than the class.
+//Class-level @ConditionalOnBean across auto-configuration boundaries is unreliable:
+//Spring evaluates it during configuration class scanning, before the peer auto-configuration's
+//bean definitions are guaranteed to be visible, even with @AutoConfiguration(after = ...) ordering.
 @AutoConfiguration(after = CompositeTrustManagerAutoConfiguration.class)
 @ConditionalOnClass(DefaultClientTlsStrategy.class)
 @ConditionalOnProperty(prefix = "composite-trust-manager", name = "configure-http-clients", havingValue = "true", matchIfMissing = true)
@@ -46,7 +46,8 @@ public class CompositeTrustManagerHttpClient5AutoConfiguration {
     @Bean(name = TLS_STRATEGY_BEAN_NAME)
     @ConditionalOnBean(name = CompositeTrustManagerAutoConfiguration.SSL_CONTEXT_BEAN_NAME)
     TlsSocketStrategy compositeTrustManagerTlsStrategy(
-            @Qualifier(CompositeTrustManagerAutoConfiguration.SSL_CONTEXT_BEAN_NAME) SSLContext sslContext) {
+            @Qualifier(CompositeTrustManagerAutoConfiguration.SSL_CONTEXT_BEAN_NAME) SSLContext sslContext) 
+    {
         return new DefaultClientTlsStrategy(sslContext);
     }
 

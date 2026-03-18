@@ -40,7 +40,8 @@ public class CompositeTrustManagerLdapAutoConfiguration {
     @ConditionalOnBean(name = CompositeTrustManagerAutoConfiguration.SSL_SOCKET_FACTORY_BEAN_NAME)
     SmartInitializingSingleton compositeTrustManagerLdapTlsConfigurer(
             @Qualifier(CompositeTrustManagerAutoConfiguration.SSL_SOCKET_FACTORY_BEAN_NAME) SSLSocketFactory sslSocketFactory,
-            ListableBeanFactory beanFactory) {
+            ListableBeanFactory beanFactory)
+    {
         return () -> beanFactory.getBeansOfType(AbstractTlsDirContextAuthenticationStrategy.class)
                 .values()
                 .forEach((strategy) -> strategy.setSslSocketFactory(sslSocketFactory));

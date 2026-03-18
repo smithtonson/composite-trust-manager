@@ -21,23 +21,31 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
-// afterName/beforeName (string form) is used instead of after/before (class references) for all
-// optional auto-configuration classes. Using class references in @AutoConfiguration(after/before=...)
-// forces Spring to classload them during bean name generation — before any @ConditionalOnClass checks
-// run — which causes an IllegalArgumentException in projects that don't have those classes on the
-// classpath.
-//
-// String-based afterName/beforeName tolerates missing classes gracefully.
-// Affected classes and the dependency that provides them:
-//   HttpClientAutoConfiguration              – spring-boot-autoconfigure 3.4+
-//   ClientHttpConnectorAutoConfiguration     – spring-boot-autoconfigure 3.4+
-//   RestTemplateAutoConfiguration            – spring-web
-//   RestClientAutoConfiguration              – spring-web
-//   WebClientAutoConfiguration               – spring-webflux
-//
-// SslAutoConfiguration is declared as a class reference (not string) because it is in
-// spring-boot-autoconfigure, which is a required dependency. It must appear in after= so that
-// SslBundles is registered before our @ConditionalOnBean(SslBundles.class) is evaluated.
+/**
+ * Spring Boot autoconfiguration for CompositeTrustManager.
+ * 
+ * afterName/beforeName (string form) is used instead of after/before
+ * (class references) for all optional auto-configuration classes. Using class 
+ * references in @AutoConfiguration(after/before=...) forces Spring to classload
+ * them during bean name generation — before any @ConditionalOnClass checks
+ * run — which causes an IllegalArgumentException in projects that don't have 
+ * those classes on the classpath.
+ *
+ * String-based afterName/beforeName tolerates missing classes gracefully.
+ * Affected classes and the dependency that provides them:
+ *   HttpClientAutoConfiguration              – spring-boot-autoconfigure 3.4+
+ *   ClientHttpConnectorAutoConfiguration     – spring-boot-autoconfigure 3.4+
+ *   RestTemplateAutoConfiguration            – spring-web
+ *   RestClientAutoConfiguration              – spring-web
+ *   WebClientAutoConfiguration               – spring-webflux
+ *
+ * SslAutoConfiguration is declared as a class reference (not string) because it
+ * is in spring-boot-autoconfigure, which is a required dependency. It must 
+ * appear in after= so that SslBundles is registered before
+ * our @ConditionalOnBean(SslBundles.class) is evaluated.
+ * 
+ * @author ferrellj
+ */
 @AutoConfiguration(
         after = SslAutoConfiguration.class,
         afterName = {
@@ -76,7 +84,8 @@ public class CompositeTrustManagerAutoConfiguration {
     @Bean(name = SSL_SOCKET_FACTORY_BEAN_NAME)
     @ConditionalOnBean(name = SSL_CONTEXT_BEAN_NAME)
     SSLSocketFactory compositeTrustManagerSslSocketFactory(
-            @Qualifier(SSL_CONTEXT_BEAN_NAME) SSLContext sslContext) {
+            @Qualifier(SSL_CONTEXT_BEAN_NAME) SSLContext sslContext) 
+    {
         return sslContext.getSocketFactory();
     }
 
@@ -85,7 +94,8 @@ public class CompositeTrustManagerAutoConfiguration {
     @ConditionalOnProperty(prefix = "composite-trust-manager", name = "install-default-ssl-context", havingValue = "true", matchIfMissing = true)
     InitializingBean compositeTrustManagerGlobalSslDefaults(
             @Qualifier(SSL_SOCKET_FACTORY_BEAN_NAME) SSLSocketFactory sslSocketFactory,
-            @Qualifier(SSL_CONTEXT_BEAN_NAME) SSLContext sslContext){
+            @Qualifier(SSL_CONTEXT_BEAN_NAME) SSLContext sslContext)
+    {
         return () -> {
             SSLContext.setDefault(sslContext);
             HttpsURLConnection.setDefaultSSLSocketFactory(sslSocketFactory);
@@ -103,7 +113,8 @@ public class CompositeTrustManagerAutoConfiguration {
         @ConditionalOnClass(ClientHttpRequestFactorySettings.class)
         ClientHttpRequestFactorySettings compositeTrustManagerClientHttpRequestFactorySettings(
                 @Qualifier("clientHttpRequestFactorySettings") ClientHttpRequestFactorySettings settings,
-                @Qualifier(SSL_BUNDLE_BEAN_NAME) SslBundle sslBundle) {
+                @Qualifier(SSL_BUNDLE_BEAN_NAME) SslBundle sslBundle) 
+        {
             return settings.withSslBundle(sslBundle);
         }
 
@@ -120,7 +131,8 @@ public class CompositeTrustManagerAutoConfiguration {
         @ConditionalOnClass(ClientHttpConnectorSettings.class)
         ClientHttpConnectorSettings compositeTrustManagerClientHttpConnectorSettings(
                 @Qualifier("clientHttpConnectorSettings") ClientHttpConnectorSettings settings,
-                @Qualifier(SSL_BUNDLE_BEAN_NAME) SslBundle sslBundle) {
+                @Qualifier(SSL_BUNDLE_BEAN_NAME) SslBundle sslBundle) 
+        {
             return settings.withSslBundle(sslBundle);
         }
 

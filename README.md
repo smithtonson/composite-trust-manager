@@ -9,12 +9,12 @@ This lets a consuming application trust both:
 
 It preserves normal certificate validation instead of replacing it with a permissive "trust all" implementation.
 
-## Why use this instead of Spring Boot SSL bundles?
+## Why use this in addition to Spring Boot's SSL bundles?
 
-Spring Boot's built-in SSL bundles let you configure custom certificates, but they
+Boot's built-in SSL bundles let you configure custom certificates, but they
 **replace** the JVM's default trust store — your app loses trust in all normal public CAs
 unless you manually re-add them to the bundle or configure which SSL configuration to
-use on a per-request or client basis.
+use on a per-request or httpclient basis.
 
 **Example:** your app needs to call both `https://api.github.com` (trusted by the JVM's
 built-in root CAs) and `https://internal.corp` (a private CA or self-signed certificate).
@@ -24,21 +24,23 @@ With bare SSL bundles:
   knows about that certificate — calls to `api.github.com` fail with an untrusted
   certificate error
 - The workaround is to manually export all ~150 JVM root CAs into your trust store file
-  and keep that file in sync as root CAs are added or removed over time
+  and keep that file in sync as root CAs are added or removed over time or to
+  manually add trusted certs to the system-wide trust store.
 
 With this library:
 - Configure a bundle with your private certificate and point the library at it — the
   library unions that bundle with the JVM's existing trust store automatically
 - Both `api.github.com` and `internal.corp` are trusted with no manual CA management
+- Increased protability and ease-of-use when deploying to containers
 
-### System-wide configuration
+### App-wide configuration
 
 The library also installs the composite context as the JVM-wide SSL default, so coverage
 extends beyond Spring's HTTP clients to `HttpsURLConnection`, JNDI/LDAP, Java's built-in
 `HttpClient`, and Apache HttpClient 5 — without wiring SSL configuration into each one
 individually.
 
-## Consumer setup
+## Use
 
 Add the dependency to your Spring Boot application:
 
@@ -59,7 +61,7 @@ spring:
   ssl:
     bundle:
       pem:
-        internal-ca:
+        internal-ca: 
           truststore:
             certificate: classpath:certs/internal-ca.pem
 
@@ -71,7 +73,7 @@ That configuration tells the library to:
 
 - load the existing JVM trust store
 - load the `internal-ca` Spring Boot SSL bundle
-- create a composite trust configuration that accepts either trust source
+- create a composite trust configuration that unions both trust sources
 - install that composite SSL context as the JVM default
 - preconfigure Boot-managed `RestTemplateBuilder`, `RestClient.Builder`, and `WebClient.Builder`
 
@@ -89,7 +91,8 @@ class DownstreamClient {
 
     DownstreamClient(RestTemplateBuilder restTemplateBuilder,
             RestClient.Builder restClientBuilder,
-            WebClient.Builder webClientBuilder) {
+            WebClient.Builder webClientBuilder)
+    {
         this.restTemplate = restTemplateBuilder.build();
         this.restClient = restClientBuilder.build();
         this.webClient = webClientBuilder.build();
@@ -97,7 +100,10 @@ class DownstreamClient {
 }
 ```
 
-Because the autoconfiguration installs the composite `SSLContext` as the JVM default, non-Boot outbound TLS clients also pick it up. For example, LDAPS/JNDI clients do not need to set `java.naming.ldap.factory.socket` explicitly just to use the additional private CA:
+Because the autoconfiguration installs the composite `SSLContext` as the JVM
+default, non-Boot outbound TLS clients also pick it up. For example, LDAPS/JNDI
+clients do not need to set `java.naming.ldap.factory.socket` explicitly just to
+use the additional private CA:
 
 ```java
 Hashtable<String, Object> env = new Hashtable<>();
@@ -107,7 +113,11 @@ env.put(Context.PROVIDER_URL, "ldaps://directory.example.com:636");
 DirContext context = new InitialDirContext(env);
 ```
 
-If your application uses Spring LDAP with explicit STARTTLS (via an `AbstractTlsDirContextAuthenticationStrategy` such as `DefaultTlsDirContextAuthenticationStrategy`), the composite socket factory is automatically set on any such strategy bean present in the context — no additional configuration is needed:
+If your application uses Spring LDAP with explicit STARTTLS (via an
+`AbstractTlsDirContextAuthenticationStrategy` such as
+`DefaultTlsDirContextAuthenticationStrategy`), the composite socket factory is
+automatically set on any such strategy bean present in the context — no
+additional configuration is needed:
 
 ```java
 @Bean
@@ -118,18 +128,19 @@ DefaultTlsDirContextAuthenticationStrategy ldapAuthStrategy() {
 
 ### TLS coverage summary
 
-When `install-default-ssl-context: true` (the default), the library covers explicit non-Spring TLS connections as well:
+When `install-default-ssl-context: true` (default), the library covers explicit
+non-Spring TLS connections as well:
 
-| Connection type                                        | Covered? | Method |
-|--------------------------------------------------------|----------|--------|
-| `new URL("https://...").openConnection()`              | Yes      | `HttpsURLConnection` uses `HttpsURLConnection.getDefaultSSLSocketFactory()`, which the library sets |
-| `SSLSocketFactory.getDefault().createSocket(...)`      | Yes      | Delegates to `SSLContext.getDefault()`, which the library replaces |
-| Java 11+ `HttpClient.newHttpClient()`                  | Yes      | Uses `SSLContext.getDefault()` when no context is explicitly passed |
-| Spring `RestTemplate` / `RestClient` / `WebClient`     | Yes      | Boot-managed builders are pre-configured with the composite SSL bundle |
-| Apache HttpClient 5 — Boot-managed (via `RestTemplate` / `RestClient`) | Yes | Uses the composite bundle through Boot's `ClientHttpRequestFactorySettings` |
-| Apache HttpClient 5 — manually created `CloseableHttpClient` | No  | Calls `SSLContexts.createSystemDefault()` internally, bypassing `SSLContext.getDefault()` — see Known issues |
-| `SSLContext.getInstance("TLS")` (explicit new context) | No       | Creates an independent context, unaffected by `setDefault()` |
-| `new Socket(...)` (plain, no TLS)                      | n/a      | Not a TLS connection |
+| Connection type                                                        | Covered? | Method |
+|------------------------------------------------------------------------|----------|--------|
+| `new URL("https://...").openConnection()`                              | Yes      | `HttpsURLConnection` uses `HttpsURLConnection.getDefaultSSLSocketFactory()`, which the library sets |
+| `SSLSocketFactory.getDefault().createSocket(...)`                      | Yes      | Delegates to `SSLContext.getDefault()`, which the library replaces |
+| Java 11+ `HttpClient.newHttpClient()`                                  | Yes      | Uses `SSLContext.getDefault()` when no context is explicitly passed |
+| Spring `RestTemplate` / `RestClient` / `WebClient`                     | Yes      | Boot-managed builders are pre-configured with the composite SSL bundle |
+| Apache HttpClient 5 — Boot-managed (via `RestTemplate` / `RestClient`) | Yes      | Uses the composite bundle through Boot's `ClientHttpRequestFactorySettings` |
+| Apache HttpClient 5 — manually created `CloseableHttpClient`           | No       | Calls `SSLContexts.createSystemDefault()` internally, bypassing `SSLContext.getDefault()` — see Known issues |
+| `SSLContext.getInstance("TLS")` (explicit new context)                 | No       | Creates an independent context, unaffected by `setDefault()` |
+| `new Socket(...)` (plain, no TLS)                                      | n/a      | Not a TLS connection |
 
 ## Optional properties
 
@@ -171,12 +182,15 @@ library exposes automatically when `httpclient5` is on the classpath:
 ```java
 @Bean
 CloseableHttpClient myHttpClient(
-        TlsSocketStrategy compositeTrustManagerTlsStrategy) {
+        TlsSocketStrategy compositeTrustManagerTlsStrategy)
+{
     return HttpClients.custom()
-            .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
-                    .setTlsSocketStrategy(compositeTrustManagerTlsStrategy)
-                    .build())
-            .build();
+            .setConnectionManager(
+                    PoolingHttpClientConnectionManagerBuilder
+                        .create()
+                        .setTlsSocketStrategy(compositeTrustManagerTlsStrategy)
+                        .build()
+            ).build();
 }
 ```
 
@@ -203,40 +217,31 @@ identity couldn't be confirmed.
 the certificate needs an IP SAN (`subjectAltName = IP:192.168.1.1`). Most modern TLS
 clients ignore the CN field entirely and require SANs.
 
-**If you own the server**, regenerate the certificate with the correct SAN. For example,
-with OpenSSL:
-
-```
-[req]
-distinguished_name = req_distinguished_name
-x509_extensions = v3_req
-prompt = no
-
-[req_distinguished_name]
-CN = my-device
-
-[v3_req]
-subjectAltName = IP:192.168.1.1
-```
+**If you own the server**, regenerate the certificate with the correct SAN.
 
 **If you cannot change the certificate** (e.g. an embedded device or legacy appliance),
 you can disable hostname verification for that specific `CloseableHttpClient` only.
-This weakens TLS security and should never be used in production:
+This weakens TLS security and should be avoided if possible:
 
 ```java
 @Bean
 CloseableHttpClient myHttpClient(
-        @Qualifier("compositeTrustManagerSslContext") SSLContext sslContext) {
+        @Qualifier("compositeTrustManagerSslContext") SSLContext sslContext)
+{
     TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
             sslContext, NoopHostnameVerifier.INSTANCE); // dev/test only
-    return HttpClients.custom()
-            .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
-                    .setTlsSocketStrategy(tlsStrategy)
-                    .build())
-            .build();
+
+    return HttpClients
+            .custom()
+            .setConnectionManager(
+                    PoolingHttpClientConnectionManagerBuilder
+                        .create()
+                        .setTlsSocketStrategy(tlsStrategy)
+                        .build()
+            ).build();
 }
 ```
 
-Note that this bypasses hostname verification entirely for every request made by this
-client — it does **not** bypass certificate trust validation, which the composite trust
-manager still enforces.
+Note that this bypasses hostname verification entirely for every request made by
+this httpclient — it does **not** bypass certificate trust validation, which the
+composite trust manager still enforces.

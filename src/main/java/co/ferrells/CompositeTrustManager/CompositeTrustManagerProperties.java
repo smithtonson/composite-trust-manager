@@ -6,17 +6,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class CompositeTrustManagerProperties {
 
     /**
-     * Enables the autoconfiguration.
+     * Enables the auto-configuration.
      */
     private boolean enabled = true;
 
     /**
      * Name of the existing Spring Boot SSL bundle to union with the JVM trust store.
      */
+    // @TODO array to allow multiple bundles?
     private String bundle;
 
     /**
-     * Whether to preconfigure the standard Spring Boot HTTP client builders.
+     * Whether to pre-configure the standard Spring Boot HTTP client builders.
      */
     private boolean configureHttpClients = true;
 
