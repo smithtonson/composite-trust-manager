@@ -52,6 +52,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CompositeTrustManagerAutoConfigurationTests {
 
@@ -250,6 +251,57 @@ class CompositeTrustManagerAutoConfigurationTests {
                 });
     }
 
+    @Test
+    void hostnameVerificationFailsForBundleCertWithWrongSanWhenIgnoreHostnameMismatchDisabled() {
+        try (TestHttpsServer server = TestHttpsServer.start("tls/server-wrong-san-keystore.p12")) {
+            ApplicationContextRunner wrongSanRunner = new ApplicationContextRunner()
+                    .withConfiguration(AutoConfigurations.of(
+                            SslAutoConfiguration.class,
+                            CompositeTrustManagerAutoConfiguration.class))
+                    .withBean(DefaultSslBundleRegistry.class,
+                            () -> wrongSanBundleRegistry())
+                    .withPropertyValues(
+                            "composite-trust-manager.bundle=wrong-san",
+                            "composite-trust-manager.install-default-ssl-context=true",
+                            "composite-trust-manager.ignore-hostname-mismatch=false");
+
+            wrongSanRunner.run((context) -> {
+                assertThat(context).hasNotFailed();
+                assertThatThrownBy(() -> readWithHttpsURLConnection(server.uri()))
+                        .isInstanceOf(IllegalStateException.class)
+                        .hasMessageContaining("Failed to read HTTPS response");
+            });
+        }
+    }
+
+    @Test
+    void hostnameVerificationSucceedsForBundleCertWithWrongSanWhenIgnoreHostnameMismatchEnabled() {
+        try (TestHttpsServer server = TestHttpsServer.start("tls/server-wrong-san-keystore.p12")) {
+            ApplicationContextRunner wrongSanRunner = new ApplicationContextRunner()
+                    .withConfiguration(AutoConfigurations.of(
+                            SslAutoConfiguration.class,
+                            CompositeTrustManagerAutoConfiguration.class))
+                    .withBean(DefaultSslBundleRegistry.class,
+                            () -> wrongSanBundleRegistry())
+                    .withPropertyValues(
+                            "composite-trust-manager.bundle=wrong-san",
+                            "composite-trust-manager.install-default-ssl-context=true",
+                            "composite-trust-manager.ignore-hostname-mismatch=true");
+
+            wrongSanRunner.run((context) -> {
+                assertThat(context).hasNotFailed();
+                assertThat(readWithHttpsURLConnection(server.uri())).isEqualTo("ok");
+            });
+        }
+    }
+
+    private static DefaultSslBundleRegistry wrongSanBundleRegistry() {
+        DefaultSslBundleRegistry registry = new DefaultSslBundleRegistry();
+        KeyStore trustStore = loadKeyStore("tls/wrong-san-truststore.p12");
+        registry.registerBundle("wrong-san", SslBundle.of(SslStoreBundle.of(null, null, trustStore)));
+        return registry;
+    }
+
     private static <T> T extractField(Object target, Class<T> type) {
         Class<?> current = target.getClass();
         while (current != null) {
@@ -324,8 +376,12 @@ class CompositeTrustManagerAutoConfigurationTests {
         }
 
         static TestHttpsServer start() {
+            return start("tls/server-keystore.p12");
+        }
+
+        static TestHttpsServer start(String keystoreResourcePath) {
             try {
-                KeyStore keyStore = loadKeyStore("tls/server-keystore.p12");
+                KeyStore keyStore = loadKeyStore(keystoreResourcePath);
 
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory
                         .getInstance(KeyManagerFactory.getDefaultAlgorithm());
