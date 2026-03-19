@@ -7,7 +7,8 @@ This lets a consuming application trust both:
 - the normal public root CAs already available to the JVM
 - private or self-signed certificates defined by the application
 
-It preserves normal certificate validation instead of replacing it with a permissive "trust all" implementation.
+It preserves normal certificate validation instead of replacing it with a permissive `NOOP` "trust all" implementation.
+Optionally trust SSL Bundle certificates with wrong Hostname or Subject Alternative Name (SAN)
 
 ## Why use this in addition to Spring Boot's SSL bundles?
 
