@@ -199,6 +199,45 @@ class CompositeTrustManagerAutoConfigurationTests {
     }
 
     @Test
+    void doesNotCreateAnyBeansWhenDisabled() {
+        this.contextRunner
+                .withPropertyValues("composite-trust-manager.enabled=false")
+                .run((context) -> {
+                    assertThat(context).hasNotFailed();
+                    assertThat(context).doesNotHaveBean(CompositeTrustManagerAutoConfiguration.SSL_BUNDLE_BEAN_NAME);
+                    assertThat(context).doesNotHaveBean(CompositeTrustManagerAutoConfiguration.SSL_CONTEXT_BEAN_NAME);
+                    assertThat(context).doesNotHaveBean(CompositeTrustManagerAutoConfiguration.SSL_SOCKET_FACTORY_BEAN_NAME);
+                    assertThat(context).doesNotHaveBean(CompositeTrustManagerAutoConfiguration.HOSTNAME_VERIFIER_BEAN_NAME);
+                    assertThat(context).doesNotHaveBean(CompositeTrustManagerHttpClient5AutoConfiguration.TLS_STRATEGY_BEAN_NAME);
+                });
+    }
+
+    @Test
+    void doesNotConfigureHttpClientBuildersWhenConfigureHttpClientsIsDisabled() {
+        this.contextRunner
+                .withPropertyValues("composite-trust-manager.configure-http-clients=false")
+                .run((context) -> {
+                    assertThat(context).hasNotFailed();
+                    assertThat(context).doesNotHaveBean("compositeTrustManagerClientHttpRequestFactorySettings");
+                    assertThat(context).doesNotHaveBean("compositeTrustManagerClientHttpConnectorSettings");
+                });
+    }
+
+    @Test
+    void doesNotInstallDefaultSslContextWhenInstallDefaultSslContextIsDisabled() {
+        SSLContext beforeContext = defaultSslContext();
+        javax.net.ssl.SSLSocketFactory beforeSocketFactory = HttpsURLConnection.getDefaultSSLSocketFactory();
+
+        this.contextRunner
+                .withPropertyValues("composite-trust-manager.install-default-ssl-context=false")
+                .run((context) -> {
+                    assertThat(context).hasNotFailed();
+                    assertThat(SSLContext.getDefault()).isSameAs(beforeContext);
+                    assertThat(HttpsURLConnection.getDefaultSSLSocketFactory()).isSameAs(beforeSocketFactory);
+                });
+    }
+
+    @Test
     void doesNotInstallBundleAwareHostnameVerifierByDefault() {
         this.contextRunner.run((context) -> {
             assertThat(context).hasNotFailed();
