@@ -1,4 +1,4 @@
-package co.ferrells.CompositeTrustManager;
+package co.ferrells.compositetrustmanager;
 
 import co.ferrells.compositetrustmanager.BundleAwareHostnameVerifier;
 import co.ferrells.compositetrustmanager.autoconfigure.CompositeTrustManagerAutoConfiguration;
