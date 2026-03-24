@@ -48,7 +48,7 @@ Add the dependency to your Spring Boot application:
 
 ```xml
 <dependency>
-  <groupId>co.ferrells</groupId>
+  <groupId>io.github.smithtonson</groupId>
   <artifactId>CompositeTrustManager</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 </dependency>

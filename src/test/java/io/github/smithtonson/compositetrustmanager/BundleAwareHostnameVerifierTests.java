@@ -1,6 +1,6 @@
-package co.ferrells.compositetrustmanager;
+package io.github.smithtonson.compositetrustmanager;
 
-import co.ferrells.compositetrustmanager.BundleAwareHostnameVerifier;
+import io.github.smithtonson.compositetrustmanager.BundleAwareHostnameVerifier;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;

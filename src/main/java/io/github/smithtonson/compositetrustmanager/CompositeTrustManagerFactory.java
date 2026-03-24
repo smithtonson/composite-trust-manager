@@ -1,4 +1,4 @@
-package co.ferrells.compositetrustmanager;
+package io.github.smithtonson.compositetrustmanager;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;

@@ -1,6 +1,6 @@
-package co.ferrells.compositetrustmanager;
+package io.github.smithtonson.compositetrustmanager;
 
-import co.ferrells.compositetrustmanager.CompositeTrustManager;
+import io.github.smithtonson.compositetrustmanager.CompositeTrustManager;
 
 import java.security.KeyStore;
 import java.security.cert.CertificateException;

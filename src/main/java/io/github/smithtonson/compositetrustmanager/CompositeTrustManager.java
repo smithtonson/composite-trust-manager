@@ -1,4 +1,4 @@
-package co.ferrells.compositetrustmanager;
+package io.github.smithtonson.compositetrustmanager;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
  */
 public class CompositeTrustManager implements X509TrustManager {
 
-    public static final Logger LOG = Logger.getLogger("co.ferrells.CompositeTrustManager"); //NOI18N
+    public static final Logger LOG = Logger.getLogger("io.github.smithtonson.CompositeTrustManager"); //NOI18N
     private final List<X509TrustManager> delegates;
 
     public CompositeTrustManager(List<X509TrustManager> delegates) {

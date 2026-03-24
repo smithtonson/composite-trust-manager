@@ -1,4 +1,4 @@
-package co.ferrells.compositetrustmanager.autoconfigure;
+package io.github.smithtonson.compositetrustmanager.autoconfigure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

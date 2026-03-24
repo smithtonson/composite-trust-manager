@@ -1,8 +1,8 @@
-package co.ferrells.compositetrustmanager.autoconfigure;
+package io.github.smithtonson.compositetrustmanager.autoconfigure;
 
-import co.ferrells.compositetrustmanager.BundleAwareHostnameVerifier;
-import co.ferrells.compositetrustmanager.CompositeTrustManager;
-import co.ferrells.compositetrustmanager.CompositeTrustManagerSslBundle;
+import io.github.smithtonson.compositetrustmanager.BundleAwareHostnameVerifier;
+import io.github.smithtonson.compositetrustmanager.CompositeTrustManager;
+import io.github.smithtonson.compositetrustmanager.CompositeTrustManagerSslBundle;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;

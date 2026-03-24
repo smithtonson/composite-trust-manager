@@ -1,9 +1,9 @@
-package co.ferrells.compositetrustmanager;
+package io.github.smithtonson.compositetrustmanager;
 
-import co.ferrells.compositetrustmanager.BundleAwareHostnameVerifier;
-import co.ferrells.compositetrustmanager.autoconfigure.CompositeTrustManagerAutoConfiguration;
-import co.ferrells.compositetrustmanager.autoconfigure.CompositeTrustManagerHttpClient5AutoConfiguration;
-import co.ferrells.compositetrustmanager.autoconfigure.CompositeTrustManagerLdapAutoConfiguration;
+import io.github.smithtonson.compositetrustmanager.BundleAwareHostnameVerifier;
+import io.github.smithtonson.compositetrustmanager.autoconfigure.CompositeTrustManagerAutoConfiguration;
+import io.github.smithtonson.compositetrustmanager.autoconfigure.CompositeTrustManagerHttpClient5AutoConfiguration;
+import io.github.smithtonson.compositetrustmanager.autoconfigure.CompositeTrustManagerLdapAutoConfiguration;
 
 import java.io.IOException;
 import java.io.InputStream;
